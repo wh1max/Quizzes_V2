@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">{{ quiz.title }} Leaderboard</h2>
+                {% if quiz.image_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + quiz.image_path) }}" 
+                         class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
+                {% endif %}
+            </div>
+        </div>
+
+        {% if scores %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player Name</th>
+                                    <th>Age</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for score in scores %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ score['Player Name'] }}</td>
+                                        <td>{{ score['Age'] }}</td>
+                                        <td>{{ "%.1f"|format(score['Score']) }}%</td>
+                                        <td>{{ score['Date'] }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                No scores yet! Be the first to play this quiz!
+            </div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('view_quiz', quiz_id=quiz.id) }}" class="btn btn-primary">Play Again</a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

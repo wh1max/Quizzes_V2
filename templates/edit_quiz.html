@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Quiz{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Edit Quiz</h2>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Quiz Title</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ quiz.title }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3">{{ quiz.description }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Quiz Cover Image</label>
+                        {% if quiz.image_path %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename='uploads/' + quiz.image_path) }}" 
+                                     class="img-thumbnail" style="max-height: 200px;" alt="Current image">
+                            </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <small class="text-muted">Leave empty to keep the current image</small>
+                    </div>
+
+                    <div id="questions-container">
+                        <h4 class="mb-3">Questions</h4>
+                        {% for question in quiz.questions %}
+                            <div class="question-entry mb-4 p-3 border rounded">
+                                <div class="mb-3">
+                                    <label class="form-label">Question {{ loop.index }}</label>
+                                    <input type="text" class="form-control" name="question_text[]" 
+                                           value="{{ question.question_text }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Question Image</label>
+                                    {% if question.image_path %}
+                                        <div class="mb-2">
+                                            <img src="{{ url_for('static', filename='uploads/' + question.image_path) }}" 
+                                                 class="img-thumbnail" style="max-height: 150px;" alt="Question image">
+                                        </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" name="question_image[]" accept="image/*">
+                                    <small class="text-muted">Leave empty to keep the current image</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Options (separate with commas)</label>
+                                    <input type="text" class="form-control" name="options[]" 
+                                           value="{{ question.get_options()|join(', ') }}" required>
+                                    <small class="text-muted">Enter at least 2 options, separated by commas</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Correct Answer</label>
+                                    <input type="text" class="form-control" name="correct_answer[]" 
+                                           value="{{ question.correct_answer }}" required>
+                                    <small class="text-muted">Must match one of the options exactly</small>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">
+                                    Remove Question
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-secondary" onclick="addQuestion()">Add Another Question</button>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let questionCount = {{ quiz.questions|length }};
+
+function addQuestion() {
+    questionCount++;
+    const container = document.getElementById('questions-container');
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'question-entry mb-4 p-3 border rounded';
+    questionDiv.innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Question ${questionCount}</label>
+            <input type="text" class="form-control" name="question_text[]" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Question Image (Optional)</label>
+            <input type="file" class="form-control" name="question_image[]" accept="image/*">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Options (separate with commas)</label>
+            <input type="text" class="form-control" name="options[]" 
+                   placeholder="Option 1, Option 2, Option 3, Option 4" required>
+            <small class="text-muted">Enter at least 2 options, separated by commas</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Correct Answer</label>
+            <input type="text" class="form-control" name="correct_answer[]" required>
+            <small class="text-muted">Must match one of the options exactly</small>
+        </div>
+        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove Question</button>
+    `;
+    container.appendChild(questionDiv);
+}
+</script>
+{% endblock %} 

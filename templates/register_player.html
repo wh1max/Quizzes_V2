@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Register to Play - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Let's Play {{ quiz.title }}!</h2>
+                
+                {% if quiz.image_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + quiz.image_path) }}" 
+                         class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
+                {% endif %}
+                
+                <p class="lead text-center mb-4">{{ quiz.description }}</p>
+                
+                <form method="POST" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required
+                               placeholder="Enter your name">
+                        <div class="invalid-feedback">
+                            Please enter your name
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="age" class="form-label">Your Age</label>
+                        <input type="number" class="form-control" id="age" name="age" required
+                               min="4" max="18" placeholder="Enter your age">
+                        <div class="invalid-feedback">
+                            Please enter your age (must be between 4 and 18)
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Start Quiz!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %} 

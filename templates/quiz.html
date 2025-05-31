@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">{{ quiz.title }}</h2>
+                {% if quiz.image_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + quiz.image_path) }}" 
+                         class="img-fluid rounded mb-4" alt="{{ quiz.title }}">
+                {% endif %}
+                <p class="lead text-center mb-4">{{ quiz.description }}</p>
+            </div>
+        </div>
+
+        <form id="quizForm" class="card">
+            <div class="card-body">
+                {% for question in quiz.questions %}
+                    <div class="mb-4 question-container" data-correct="{{ question.correct_answer }}">
+                        <h4 class="mb-3">Question {{ loop.index }}</h4>
+                        <p class="lead">{{ question.question_text }}</p>
+                        {% if question.image_path %}
+                            <div class="mb-3">
+                                <img src="{{ url_for('static', filename='uploads/' + question.image_path) }}" 
+                                     class="img-fluid rounded" alt="Question image"
+                                     style="max-height: 300px; width: auto;">
+                            </div>
+                        {% endif %}
+                        <div class="options-container">
+                            {% for option in question.get_options() %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="question_{{ question.id }}" 
+                                           id="q{{ question.id }}_opt{{ loop.index }}"
+                                           value="{{ option }}">
+                                    <label class="form-check-label" for="q{{ question.id }}_opt{{ loop.index }}">
+                                        {{ option }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="feedback mt-2" style="display: none;"></div>
+                    </div>
+                {% endfor %}
+
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="checkAnswers()">
+                        Check Answers
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let quizSubmitted = false;
+
+function normalizeAnswer(answer) {
+    // Convert to lowercase and trim whitespace
+    return answer.toLowerCase().trim();
+}
+
+function checkAnswers() {
+    if (quizSubmitted) {
+        return; // Prevent multiple submissions
+    }
+
+    const questions = document.querySelectorAll('.question-container');
+    let correctCount = 0;
+    let unansweredCount = 0;
+
+    questions.forEach((question, index) => {
+        const selectedOption = question.querySelector('input[type="radio"]:checked');
+        const feedback = question.querySelector('.feedback');
+        const correctAnswer = normalizeAnswer(question.dataset.correct);
+
+        if (!selectedOption) {
+            feedback.className = 'feedback mt-2 alert alert-warning';
+            feedback.textContent = 'Please select an answer!';
+            feedback.style.display = 'block';
+            unansweredCount++;
+            return;
+        }
+
+        const userAnswer = normalizeAnswer(selectedOption.value);
+
+        if (userAnswer === correctAnswer) {
+            feedback.className = 'feedback mt-2 alert alert-success';
+            feedback.textContent = 'Correct! Well done! 🎉';
+            correctCount++;
+        } else {
+            feedback.className = 'feedback mt-2 alert alert-danger';
+            feedback.textContent = `Not quite right. The correct answer is: ${question.dataset.correct}`;
+        }
+        feedback.style.display = 'block';
+    });
+
+    // Show final score
+    const totalQuestions = questions.length;
+    const score = (correctCount / totalQuestions) * 100;
+    const scoreMessage = document.createElement('div');
+    scoreMessage.className = 'alert alert-info text-center mt-4';
+    
+    let message = '';
+    if (unansweredCount > 0) {
+        message = `<p class="text-warning">You have ${unansweredCount} unanswered question(s). Please answer all questions for a complete score.</p>`;
+    }
+    
+    message += `
+        <h3>Your Score: ${score.toFixed(1)}%</h3>
+        <p>You got ${correctCount} out of ${totalQuestions} questions correct!</p>
+    `;
+
+    if (score === 100) {
+        message += '<p class="text-success">🎉 Perfect score! Amazing job! 🎉</p>';
+    } else if (score >= 80) {
+        message += '<p class="text-success">Great job! Keep up the good work! 🌟</p>';
+    } else if (score >= 60) {
+        message += '<p class="text-warning">Good effort! Keep practicing! 💪</p>';
+    } else {
+        message += '<p class="text-danger">Keep trying! You can do better next time! 📚</p>';
+    }
+    
+    // Add leaderboard button
+    message += `
+        <div class="mt-4">
+            <a href="/quiz/{{ quiz.id }}/leaderboard" class="btn btn-primary">View Leaderboard</a>
+            <a href="/quiz/{{ quiz.id }}/play" class="btn btn-outline-secondary">Play Again</a>
+        </div>
+    `;
+    
+    scoreMessage.innerHTML = message;
+    
+    const existingScore = document.querySelector('.alert-info');
+    if (existingScore) {
+        existingScore.remove();
+    }
+    document.querySelector('.card-body').appendChild(scoreMessage);
+    
+    // Disable the check answers button after submission
+    const checkButton = document.querySelector('button[onclick="checkAnswers()"]');
+    checkButton.disabled = true;
+    checkButton.textContent = 'Quiz Completed';
+    quizSubmitted = true;
+
+    // Save score to server
+    fetch('/quiz/{{ quiz.id }}/save_score', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            score: score
+        })
+    });
+}
+</script>
+{% endblock %} 

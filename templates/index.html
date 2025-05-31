@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-4">Welcome to Kids Quiz!</h1>
+            <p class="lead mb-4">Fun and educational quizzes for kids!</p>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+            {% else %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg px-4 gap-3">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <h2 class="mb-4">Available Quizzes</h2>
+        {% if quizzes %}
+            <div class="row">
+                {% for quiz in quizzes %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            {% if quiz.image_path %}
+                                <img src="{{ url_for('static', filename='uploads/' + quiz.image_path) }}" 
+                                     class="card-img-top" alt="{{ quiz.title }}"
+                                     style="height: 200px; object-fit: cover;">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ quiz.title }}</h5>
+                                <p class="card-text">{{ quiz.description }}</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Created by: {{ quiz.author.username }}
+                                    </small>
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('register_player', quiz_id=quiz.id) }}" 
+                                       class="btn btn-primary">Play Quiz</a>
+                                    <a href="{{ url_for('view_leaderboard', quiz_id=quiz.id) }}" 
+                                       class="btn btn-outline-secondary">View Leaderboard</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                No quizzes available yet. Check back soon!
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
