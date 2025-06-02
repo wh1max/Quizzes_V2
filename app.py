@@ -395,7 +395,6 @@ def save_score(quiz_id):
 # Initialize the database
 def init_db():
     with app.app_context():
-        db.drop_all()  # Drop all existing tables
         db.create_all()  # Create new tables with updated schema
 
 if __name__ == '__main__':
